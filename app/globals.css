@@ -1,0 +1,48 @@
+@import "tailwindcss";
+
+:root {
+  --color-primary: #ea580c;
+  --color-primary-hover: #c2410c;
+  --color-on-primary: #ffffff;
+  --color-accent: #16a34a;
+  --color-accent-hover: #15803d;
+  --color-on-accent: #ffffff;
+
+  --color-background: #f8fafc;
+  --color-foreground: #0f172a;
+  --color-card: #ffffff;
+  --color-card-foreground: #0f172a;
+  --color-muted: #f1f5f9;
+  --color-muted-foreground: #64748b;
+  --color-border: #e2e8f0;
+  --color-destructive: #dc2626;
+  --color-destructive-bg: #fef2f2;
+  --color-ring: #ea580c;
+}
+
+@theme inline {
+  --color-primary: var(--color-primary);
+  --color-primary-hover: var(--color-primary-hover);
+  --color-on-primary: var(--color-on-primary);
+  --color-accent: var(--color-accent);
+  --color-accent-hover: var(--color-accent-hover);
+  --color-on-accent: var(--color-on-accent);
+  --color-background: var(--color-background);
+  --color-foreground: var(--color-foreground);
+  --color-card: var(--color-card);
+  --color-card-foreground: var(--color-card-foreground);
+  --color-muted: var(--color-muted);
+  --color-muted-foreground: var(--color-muted-foreground);
+  --color-border: var(--color-border);
+  --color-destructive: var(--color-destructive);
+  --color-destructive-bg: var(--color-destructive-bg);
+  --color-ring: var(--color-ring);
+  --font-sans: var(--font-barlow), "PingFang SC", "Microsoft YaHei", "Helvetica Neue", sans-serif;
+  --font-display: var(--font-barlow-condensed), "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+
+body {
+  background: var(--color-background);
+  color: var(--color-foreground);
+  font-family: var(--font-sans);
+}
