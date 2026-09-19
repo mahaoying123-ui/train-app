@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { submitHumanChoice, pollWorkflowRun, cleanOutputs } from "@/lib/dify";
+import { submitHumanChoice, pollWorkflowRun, cleanOutputs, hasMeaningfulOutput } from "@/lib/dify";
 
 export async function POST(req: NextRequest) {
   let body: Record<string, unknown>;
@@ -26,9 +26,15 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    return NextResponse.json({
-      outputs: cleanOutputs(result.outputs || {}),
-    });
+    const outputs = cleanOutputs(result.outputs || {});
+    if (!hasMeaningfulOutput(outputs)) {
+      return NextResponse.json(
+        { error: "AI 没有生成有效内容，请重试一次" },
+        { status: 502 },
+      );
+    }
+
+    return NextResponse.json({ outputs });
   } catch (err) {
     console.error("Dify choice submission failed:", err);
     const message = err instanceof Error ? err.message : "提交选择失败，请稍后重试";

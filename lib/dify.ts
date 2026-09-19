@@ -25,6 +25,15 @@ export function cleanOutputs(outputs: Record<string, unknown>): Record<string, u
   return cleaned;
 }
 
+// LLM 偶尔会生成空内容（或工作流某个环节静默失败），这种情况下 Dify 仍然
+// 返回 status: succeeded，但 outputs 是空的。要把它当成明确的错误处理，
+// 而不是让前端悄悄展示一个空白结果。
+export function hasMeaningfulOutput(outputs: Record<string, unknown>): boolean {
+  const values = Object.values(outputs);
+  if (values.length === 0) return false;
+  return values.some((v) => (typeof v === "string" ? v.trim().length > 0 : v != null));
+}
+
 async function* iterateDifyStream(res: Response): AsyncGenerator<Record<string, unknown>> {
   const reader = res.body?.getReader();
   if (!reader) return;
@@ -63,19 +72,52 @@ export interface StartResult {
   outputs?: Record<string, unknown>;
 }
 
-// LLM 每次生成的方案标题格式不完全固定（有时带“方案”前缀，有时不带），
-// 因此按“段落开头是一个大写字母 + 括号/冒号”这个更宽松的规律来切分每个方案。
-function splitPlanSections(text: string): Record<string, string> {
-  const headerRegex = /(?:^|\n)\s*(?:方案)?([A-D])(?=[（(：:])/g;
+// LLM 每次生成的方案标题格式不完全固定（有时带"方案"前缀、有时不带，标题后面
+// 跟的可能是全角/半角括号、冒号，或者干脆一个空格），所以按多种规律尝试切分，
+// 拆不干净时兜底成"按空行分段、按顺序对应每个选项"，保证每张卡片显示的内容
+// 至少不会是"全部选项拼在一起"。
+function splitPlanOptions(text: string, ids: string[]): Record<string, string> {
+  const headerRegex = /(?:^|\n)\s*(?:方案)?([A-D])(?=[（(：:\s])/g;
   const matches: { id: string; index: number }[] = [];
   let m: RegExpExecArray | null;
   while ((m = headerRegex.exec(text))) {
     matches.push({ id: m[1], index: m.index });
   }
+
+  // 同一个字母只认第一次出现的位置，避免正文里偶然出现的字母被误判成新方案的开头
+  const seenIds = new Set<string>();
+  const headers = matches.filter((match) => {
+    if (seenIds.has(match.id)) return false;
+    seenIds.add(match.id);
+    return true;
+  });
+
   const sections: Record<string, string> = {};
-  matches.forEach((match, i) => {
-    const end = i + 1 < matches.length ? matches[i + 1].index : text.length;
-    sections[match.id] = text.slice(match.index, end).trim();
+
+  if (headers.length === ids.length) {
+    headers.forEach((match, i) => {
+      const end = i + 1 < headers.length ? headers[i + 1].index : text.length;
+      sections[match.id] = text.slice(match.index, end).trim();
+    });
+    return sections;
+  }
+
+  // 兜底：按空行分段，第 N 段对应第 N 个选项
+  const paragraphs = text
+    .split(/\n\s*\n/)
+    .map((p) => p.trim())
+    .filter(Boolean);
+
+  if (paragraphs.length >= ids.length) {
+    ids.forEach((id, i) => {
+      sections[id] = paragraphs[i];
+    });
+    return sections;
+  }
+
+  // 实在拆不出来：所有选项共用完整文本，至少不会一片空白
+  ids.forEach((id) => {
+    sections[id] = text;
   });
   return sections;
 }
@@ -128,8 +170,12 @@ export async function startTrainingWorkflow(
   if (formToken) {
     const form = await getHumanInputForm(formToken);
     const cleanedContent = stripThinking(form.form_content || "");
-    const sections = splitPlanSections(cleanedContent);
-    const options: PlanOption[] = (form.user_actions || []).map((action) => ({
+    const actions = form.user_actions || [];
+    const sections = splitPlanOptions(
+      cleanedContent,
+      actions.map((a) => a.id),
+    );
+    const options: PlanOption[] = actions.map((action) => ({
       id: action.id,
       title: action.title,
       text: sections[action.id] || cleanedContent,
@@ -141,8 +187,11 @@ export async function startTrainingWorkflow(
     if (finished.status === "failed") {
       throw new Error(`Dify 工作流执行失败：${finished.error || "未知错误"}`);
     }
-    const outputs = (finished.outputs as Record<string, unknown>) || {};
-    return { workflowRunId, status: "finished", outputs: cleanOutputs(outputs) };
+    const outputs = cleanOutputs((finished.outputs as Record<string, unknown>) || {});
+    if (!hasMeaningfulOutput(outputs)) {
+      throw new Error("AI 没有生成有效内容，请重试一次");
+    }
+    return { workflowRunId, status: "finished", outputs };
   }
 
   throw new Error("Dify 工作流没有返回预期的结果");
@@ -171,16 +220,29 @@ export async function pollWorkflowRun(
   timeoutMs = 90000,
 ): Promise<WorkflowRunStatus> {
   const start = Date.now();
+  let lastSeen: WorkflowRunStatus | null = null;
+
   while (Date.now() - start < timeoutMs) {
     const res = await fetch(`${DIFY_BASE_URL}/workflows/run/${workflowRunId}`, {
       headers: authHeaders(),
     });
     if (!res.ok) throw new Error("查询 Dify 工作流状态失败");
     const data = (await res.json()) as WorkflowRunStatus;
-    if (data.status && data.status !== "running") {
-      return data;
+    lastSeen = data;
+
+    const isRunning = !data.status || data.status === "running";
+    if (!isRunning) {
+      // Dify 那边状态和 outputs 的写入不是原子的：状态可能先变成终态，
+      // outputs 字段过几秒才补齐。失败可以立刻确定，但"终态却没有内容"
+      // 还不能立刻判定为失败，继续轮询直到超时，避免把这个短暂的空窗期
+      // 误判成"AI 没有生成内容"。
+      if (data.status === "failed" || (data.outputs && Object.keys(data.outputs).length > 0)) {
+        return data;
+      }
     }
     await new Promise((r) => setTimeout(r, 1500));
   }
+
+  if (lastSeen) return lastSeen;
   throw new Error("等待 Dify 生成结果超时，请重试");
 }
