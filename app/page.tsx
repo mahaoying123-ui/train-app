@@ -2,7 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { AlertCircle } from "lucide-react";
+import Header from "@/components/Header";
 import Hero from "@/components/Hero";
+import StepIndicator from "@/components/StepIndicator";
 import TrainForm from "@/components/TrainForm";
 import OptionPicker from "@/components/OptionPicker";
 import ResultCard from "@/components/ResultCard";
@@ -22,8 +24,6 @@ interface PendingChoice {
   options: PlanOption[];
   formValues: TrainFormValues;
 }
-
-const STEPS = ["填写信息", "选择方案", "查看计划"];
 
 export default function Home() {
   const [submitting, setSubmitting] = useState(false);
@@ -129,73 +129,65 @@ export default function Home() {
   }
 
   return (
-    <div className="flex flex-1 flex-col items-center bg-[var(--color-background)] px-4 py-10 sm:py-16">
-      <div className="flex w-full max-w-2xl flex-col gap-8">
-        <Hero />
+    <div className="flex flex-1 flex-col bg-[var(--color-background)]">
+      {/* 核心产品区：桌面端锁定为一屏高度，不需要滚动就能完成"记录状态 → AI决策 → 生成计划"。
+          注意：这里不能加 flex-1——它会把 flex-basis 变成 0%，盖掉 lg:h-screen 的 100vh。 */}
+      <div className="flex flex-col lg:h-screen lg:overflow-hidden">
+        <Header />
 
-        <ol className="flex items-center justify-center gap-2 text-xs font-medium text-[var(--color-muted-foreground)]">
-          {STEPS.map((step, i) => (
-            <li key={step} className="flex items-center gap-2">
-              <span
-                className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 transition-colors ${
-                  i === currentStep
-                    ? "bg-[var(--color-primary)] text-[var(--color-on-primary)]"
-                    : i < currentStep
-                      ? "bg-emerald-100 text-emerald-700"
-                      : "bg-[var(--color-muted)] text-[var(--color-muted-foreground)]"
-                }`}
-              >
-                <span className="flex h-4 w-4 items-center justify-center rounded-full bg-black/10 text-[10px]">
-                  {i + 1}
-                </span>
-                {step}
-              </span>
-              {i < STEPS.length - 1 && <span className="h-px w-4 bg-[var(--color-border)]" />}
-            </li>
-          ))}
-        </ol>
+        <main className="flex flex-1 flex-col items-center gap-5 px-6 py-6 lg:min-h-0 lg:justify-center lg:gap-6 lg:px-16 lg:py-6">
+          <Hero />
+          <StepIndicator current={currentStep} />
 
-        <section className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-card)] p-6 shadow-sm">
-          {result ? (
-            <div className="flex flex-col gap-4">
-              <div className="flex items-center justify-between">
-                <h2 className="font-[family-name:var(--font-display)] text-lg font-semibold text-[var(--color-foreground)]">
-                  最终训练计划
-                </h2>
-                <button
-                  onClick={handleRestart}
-                  className="cursor-pointer text-xs font-medium text-[var(--color-primary)] hover:underline"
-                >
-                  重新生成
-                </button>
-              </div>
-              <ResultCard outputs={result} />
+          <div className="flex w-full max-w-[640px] flex-col gap-3">
+            <div className="w-full overflow-y-auto rounded-[22px] border border-[var(--color-border)] bg-[var(--color-card)] p-7 shadow-sm lg:max-h-[calc(100vh-360px)]">
+              {result ? (
+                <div className="flex flex-col gap-4">
+                  <div className="flex items-center justify-between">
+                    <h2 className="text-base font-semibold text-[var(--color-foreground)]">
+                      今日训练计划
+                    </h2>
+                    <button
+                      onClick={handleRestart}
+                      className="cursor-pointer text-xs font-medium text-[var(--color-foreground)] hover:underline"
+                    >
+                      重新生成
+                    </button>
+                  </div>
+                  <ResultCard outputs={result} />
+                </div>
+              ) : pendingChoice ? (
+                <OptionPicker
+                  options={pendingChoice.options}
+                  onChoose={handleChoose}
+                  submitting={submitting}
+                />
+              ) : (
+                <TrainForm onSubmit={handleSubmit} submitting={submitting} />
+              )}
             </div>
-          ) : pendingChoice ? (
-            <OptionPicker
-              options={pendingChoice.options}
-              onChoose={handleChoose}
-              submitting={submitting}
-            />
-          ) : (
-            <TrainForm onSubmit={handleSubmit} submitting={submitting} />
-          )}
-        </section>
 
-        {error && (
-          <div className="flex items-start gap-2 rounded-xl border border-red-200 bg-[var(--color-destructive-bg)] px-4 py-3 text-sm text-[var(--color-destructive)]">
-            <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
-            {error}
+            {error && (
+              <div className="flex items-start gap-2 rounded-xl border border-red-200 bg-[var(--color-destructive-bg)] px-4 py-2.5 text-xs text-[var(--color-destructive)]">
+                <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                {error}
+              </div>
+            )}
           </div>
-        )}
+        </main>
 
-        <section className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-card)] p-6 shadow-sm">
-          <h2 className="mb-4 font-[family-name:var(--font-display)] text-lg font-semibold text-[var(--color-foreground)]">
-            历史记录
-          </h2>
-          <HistoryList history={history} onClear={handleClearHistory} />
-        </section>
+        <footer className="hidden shrink-0 py-3 text-center text-xs text-[var(--color-muted-foreground)] lg:block">
+          Powered by AI
+        </footer>
       </div>
+
+      {/* 历史记录：不属于核心流程，放在第一屏之外，向下滚动才会看到 */}
+      <section className="border-t border-[var(--color-border)] px-6 py-10 lg:px-16">
+        <div className="mx-auto w-full max-w-[640px] rounded-[22px] border border-[var(--color-border)] bg-[var(--color-card)] p-7 shadow-sm">
+          <h2 className="mb-4 text-base font-semibold text-[var(--color-foreground)]">历史记录</h2>
+          <HistoryList history={history} onClear={handleClearHistory} />
+        </div>
+      </section>
     </div>
   );
 }

@@ -14,9 +14,9 @@ export default function PlanView({ plan }: { plan: ParsedPlan }) {
   return (
     <div className="flex flex-col gap-6">
       {(plan.name || stats.length > 0) && (
-        <div className="rounded-xl bg-gradient-to-br from-orange-50 to-emerald-50 p-4">
+        <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-muted)] p-4">
           {plan.name && (
-            <h3 className="mb-3 font-[family-name:var(--font-display)] text-xl font-semibold tracking-tight text-[var(--color-foreground)]">
+            <h3 className="mb-3 text-lg font-semibold tracking-tight text-[var(--color-foreground)]">
               {plan.name}
             </h3>
           )}
@@ -24,7 +24,7 @@ export default function PlanView({ plan }: { plan: ParsedPlan }) {
             <div className="flex flex-wrap gap-4">
               {stats.map((stat) => (
                 <div key={stat.label} className="flex items-center gap-1.5">
-                  <stat.icon className="h-4 w-4 text-[var(--color-primary)]" aria-hidden="true" />
+                  <stat.icon className="h-4 w-4 text-[var(--color-muted-foreground)]" aria-hidden="true" />
                   <span className="text-xs text-[var(--color-muted-foreground)]">{stat.label}</span>
                   <span className="text-sm font-semibold text-[var(--color-foreground)]">
                     {stat.value}
@@ -48,7 +48,7 @@ export default function PlanView({ plan }: { plan: ParsedPlan }) {
               )}
             </div>
             <div className="flex flex-1 flex-col gap-2 pb-1">
-              <h4 className="font-[family-name:var(--font-display)] text-base font-semibold text-[var(--color-foreground)]">
+              <h4 className="text-base font-semibold text-[var(--color-foreground)]">
                 {stage.title}
               </h4>
               {stage.note && (
@@ -61,7 +61,7 @@ export default function PlanView({ plan }: { plan: ParsedPlan }) {
                 >
                   <div className="flex items-center justify-between gap-2">
                     <span className="flex items-center gap-1.5 text-sm font-medium text-[var(--color-foreground)]">
-                      <Dumbbell className="h-3.5 w-3.5 text-[var(--color-primary)]" aria-hidden="true" />
+                      <Dumbbell className="h-3.5 w-3.5 text-[var(--color-muted-foreground)]" aria-hidden="true" />
                       {ex.name}
                     </span>
                     <span className="shrink-0 text-xs font-medium text-[var(--color-muted-foreground)]">
