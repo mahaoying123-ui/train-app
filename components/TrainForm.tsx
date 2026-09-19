@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { Activity, Zap, ShieldAlert, Target, Loader2, ArrowRight } from "lucide-react";
+import { useState } from "react";
+import { Activity, Zap, ShieldAlert, Target, ArrowRight } from "lucide-react";
 import PillGroup from "./PillGroup";
 import TimeSlider from "./TimeSlider";
+import AIProcessing from "./AIProcessing";
 import {
   PHYSICAL_STATUS_OPTIONS,
   ENERGY_STATUS_OPTIONS,
@@ -31,8 +32,6 @@ const SHORT_GOAL_OPTIONS = TRAIN_GOAL_OPTIONS.map((o) => ({
   label: o.label.split("：")[0],
 }));
 
-const LOADING_PHRASES = ["分析你的状态…", "评估训练负荷…", "生成训练计划中…"];
-
 interface TrainFormProps {
   onSubmit: (values: TrainFormValues) => void;
   submitting: boolean;
@@ -41,20 +40,8 @@ interface TrainFormProps {
 export default function TrainForm({ onSubmit, submitting }: TrainFormProps) {
   const [values, setValues] = useState<TrainFormValues>(EMPTY_FORM);
   const [formError, setFormError] = useState<string | null>(null);
-  const [phraseIndex, setPhraseIndex] = useState(0);
 
   const hasInjury = values.do_you_have_injury === INJURY_YES;
-
-  useEffect(() => {
-    if (!submitting) {
-      setPhraseIndex(0);
-      return;
-    }
-    const id = setInterval(() => {
-      setPhraseIndex((i) => (i + 1) % LOADING_PHRASES.length);
-    }, 1600);
-    return () => clearInterval(id);
-  }, [submitting]);
 
   function update<K extends keyof TrainFormValues>(key: K, value: TrainFormValues[K]) {
     setValues((prev) => ({ ...prev, [key]: value }));
@@ -89,9 +76,13 @@ export default function TrainForm({ onSubmit, submitting }: TrainFormProps) {
     onSubmit(values);
   }
 
+  if (submitting) {
+    return <AIProcessing />;
+  }
+
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-6">
-      <div className="grid grid-cols-1 gap-x-8 gap-y-5 sm:grid-cols-2">
+    <form onSubmit={handleSubmit} className="flex flex-col gap-7">
+      <div className="grid grid-cols-1 gap-x-10 gap-y-6 sm:grid-cols-2">
         <PillGroup
           label="身体状态"
           value={values.physical_status}
@@ -115,7 +106,7 @@ export default function TrainForm({ onSubmit, submitting }: TrainFormProps) {
             icon={ShieldAlert}
           />
           {hasInjury && (
-            <div className="flex flex-col gap-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-muted)] p-3">
+            <div className="flex flex-col gap-3 border-l border-[var(--color-border)] pl-3">
               <PillGroup
                 label="受伤部位"
                 value={values.the_place_of_injury}
@@ -140,6 +131,8 @@ export default function TrainForm({ onSubmit, submitting }: TrainFormProps) {
         />
       </div>
 
+      <div className="h-px bg-[var(--color-border)]" aria-hidden="true" />
+
       <PillGroup
         label="训练目标"
         value={values.train_goal}
@@ -152,20 +145,10 @@ export default function TrainForm({ onSubmit, submitting }: TrainFormProps) {
 
       <button
         type="submit"
-        disabled={submitting}
-        className="flex h-[52px] w-full cursor-pointer items-center justify-center gap-2 rounded-2xl bg-[var(--color-primary)] px-4 text-sm font-semibold text-[var(--color-on-primary)] shadow-sm transition-all duration-150 hover:bg-[var(--color-primary-hover)] active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60"
+        className="flex h-[50px] w-full cursor-pointer items-center justify-center gap-2 rounded-2xl bg-[var(--color-primary)] px-4 text-[15px] font-semibold text-[var(--color-on-primary)] transition-all duration-200 ease-out hover:-translate-y-px hover:opacity-90"
       >
-        {submitting ? (
-          <>
-            <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
-            {LOADING_PHRASES[phraseIndex]}
-          </>
-        ) : (
-          <>
-            生成今日训练计划
-            <ArrowRight className="h-4 w-4" aria-hidden="true" />
-          </>
-        )}
+        生成今日训练计划
+        <ArrowRight className="h-4 w-4" strokeWidth={1.75} aria-hidden="true" />
       </button>
     </form>
   );

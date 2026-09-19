@@ -139,17 +139,24 @@ export default function Home() {
           <Hero />
           <StepIndicator current={currentStep} />
 
-          <div className="flex w-full max-w-[640px] flex-col gap-3">
-            <div className="w-full overflow-y-auto rounded-[22px] border border-[var(--color-border)] bg-[var(--color-card)] p-7 shadow-sm lg:max-h-[calc(100vh-360px)]">
+          <div className="flex w-full max-w-[720px] flex-col gap-4">
+            <div
+              className="w-full overflow-y-auto rounded-[20px] border p-8 backdrop-blur-sm lg:max-h-[calc(100vh-380px)]"
+              style={{
+                backgroundColor: "var(--color-panel-bg)",
+                borderColor: "var(--color-panel-border)",
+                boxShadow: "0 4px 20px rgba(0,0,0,0.04)",
+              }}
+            >
               {result ? (
-                <div className="flex flex-col gap-4">
+                <div className="flex flex-col gap-5">
                   <div className="flex items-center justify-between">
-                    <h2 className="text-base font-semibold text-[var(--color-foreground)]">
+                    <h2 className="text-[15px] font-medium text-[var(--color-secondary)]">
                       今日训练计划
                     </h2>
                     <button
                       onClick={handleRestart}
-                      className="cursor-pointer text-xs font-medium text-[var(--color-foreground)] hover:underline"
+                      className="cursor-pointer text-[13px] font-medium text-[var(--color-secondary)] transition-colors hover:text-[var(--color-foreground)]"
                     >
                       重新生成
                     </button>
@@ -169,7 +176,7 @@ export default function Home() {
 
             {error && (
               <div className="flex items-start gap-2 rounded-xl border border-red-200 bg-[var(--color-destructive-bg)] px-4 py-2.5 text-xs text-[var(--color-destructive)]">
-                <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" strokeWidth={1.75} aria-hidden="true" />
                 {error}
               </div>
             )}
@@ -182,9 +189,9 @@ export default function Home() {
       </div>
 
       {/* 历史记录：不属于核心流程，放在第一屏之外，向下滚动才会看到 */}
-      <section className="border-t border-[var(--color-border)] px-6 py-10 lg:px-16">
-        <div className="mx-auto w-full max-w-[640px] rounded-[22px] border border-[var(--color-border)] bg-[var(--color-card)] p-7 shadow-sm">
-          <h2 className="mb-4 text-base font-semibold text-[var(--color-foreground)]">历史记录</h2>
+      <section className="border-t border-[var(--color-border)] px-6 py-16 lg:px-16">
+        <div className="mx-auto flex w-full max-w-[720px] flex-col gap-5">
+          <h2 className="text-[15px] font-medium text-[var(--color-secondary)]">历史记录</h2>
           <HistoryList history={history} onClear={handleClearHistory} />
         </div>
       </section>

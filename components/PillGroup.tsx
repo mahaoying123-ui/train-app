@@ -19,9 +19,9 @@ export default function PillGroup({
   compact = false,
 }: PillGroupProps) {
   return (
-    <div className="flex flex-col gap-2">
-      <span className="flex items-center gap-1.5 text-xs font-medium text-[var(--color-muted-foreground)]">
-        {Icon && <Icon className="h-3.5 w-3.5" aria-hidden="true" />}
+    <div className="flex flex-col gap-2.5">
+      <span className="flex items-center gap-1.5 text-[13px] font-medium text-[var(--color-secondary)]">
+        {Icon && <Icon className="h-3.5 w-3.5" strokeWidth={1.75} aria-hidden="true" />}
         {label}
       </span>
       <div className="flex flex-wrap gap-2" role="radiogroup" aria-label={label}>
@@ -34,12 +34,12 @@ export default function PillGroup({
               role="radio"
               aria-checked={selected}
               onClick={() => onChange(opt.value)}
-              className={`cursor-pointer rounded-xl border text-sm font-medium transition-all duration-150 ${
-                compact ? "px-3 py-1.5 text-[13px]" : "px-3.5 py-2"
+              className={`cursor-pointer rounded-full border text-sm transition-all duration-200 ease-out ${
+                compact ? "px-3 py-1.5 text-[13px]" : "px-4 py-2"
               } ${
                 selected
-                  ? "border-[var(--color-foreground)] bg-[var(--color-foreground)] text-[var(--color-on-primary)]"
-                  : "border-[var(--color-border)] bg-[var(--color-card)] text-[var(--color-foreground)] hover:border-[var(--color-foreground)]/40"
+                  ? "border-[var(--color-accent-border)] bg-[var(--color-accent-soft)] font-medium text-[var(--color-accent-text)]"
+                  : "border-[var(--color-border)] bg-transparent text-[var(--color-foreground)] hover:border-[var(--color-tertiary)]"
               }`}
             >
               {opt.label}

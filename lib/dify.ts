@@ -15,12 +15,26 @@ export function stripThinking(text: string): string {
   return text.replace(/<think>[\s\S]*?<\/think>/g, "").trim();
 }
 
+// LLM 有时会在纯文本输出里夹带 Markdown 强调符号（**加粗**、# 标题等），
+// 这些原始符号不应该原样展示在界面上，这里做一次轻量清理。
+export function stripMarkdownArtifacts(text: string): string {
+  return text
+    .replace(/\*\*(.*?)\*\*/g, "$1")
+    .replace(/__(.*?)__/g, "$1")
+    .replace(/^#{1,6}\s+/gm, "")
+    .replace(/\*/g, "");
+}
+
+function cleanText(text: string): string {
+  return stripMarkdownArtifacts(stripThinking(text));
+}
+
 // Dify 工作流最终输出变量的名字由工作流作者自己定义（比如 text / result / answer），
 // 前端不应该假设固定的字段名，因此这里对所有字符串类型的输出统一做思维链清理。
 export function cleanOutputs(outputs: Record<string, unknown>): Record<string, unknown> {
   const cleaned: Record<string, unknown> = {};
   for (const [key, value] of Object.entries(outputs)) {
-    cleaned[key] = typeof value === "string" ? stripThinking(value) : value;
+    cleaned[key] = typeof value === "string" ? cleanText(value) : value;
   }
   return cleaned;
 }
@@ -169,7 +183,7 @@ export async function startTrainingWorkflow(
 
   if (formToken) {
     const form = await getHumanInputForm(formToken);
-    const cleanedContent = stripThinking(form.form_content || "");
+    const cleanedContent = cleanText(form.form_content || "");
     const actions = form.user_actions || [];
     const sections = splitPlanOptions(
       cleanedContent,

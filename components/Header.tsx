@@ -5,7 +5,7 @@ export default function Header() {
     <header className="flex h-16 shrink-0 items-center justify-between border-b border-[var(--color-border)] px-6 lg:px-16">
       <div className="flex items-center gap-2">
         <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-[var(--color-foreground)] text-[var(--color-background)]">
-          <Dumbbell className="h-4 w-4" aria-hidden="true" />
+          <Dumbbell className="h-4 w-4" strokeWidth={1.75} aria-hidden="true" />
         </span>
         <span className="text-sm font-semibold tracking-tight text-[var(--color-foreground)]">
           AI 训练计划生成器

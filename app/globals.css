@@ -5,21 +5,30 @@
   --color-primary-hover: #2c2d31;
   --color-on-primary: #ffffff;
 
-  --color-accent: #c2661a;
-  --color-accent-soft: #f6ece1;
-  --color-on-accent: #ffffff;
+  /* 低饱和度 sage green：只用于选中态 / 成功 / AI 状态 / 推荐标签，
+     不作为页面主色。 */
+  --color-accent: #6f8a68;
+  --color-accent-soft: #eaf0e8;
+  --color-accent-border: #b7c5b2;
+  --color-accent-text: #243024;
 
-  --color-success: #4c8f6a;
-  --color-success-soft: #eaf3ee;
+  --color-success: #6f8a68;
+  --color-success-soft: #eaf0e8;
 
-  --color-background: #f7f8f7;
+  --color-background: #f8f9f7;
   --color-foreground: #16171a;
+  --color-secondary: #6f7478;
+  --color-tertiary: #a5aaad;
+
   --color-card: #ffffff;
   --color-card-foreground: #16171a;
+  --color-panel-bg: rgba(255, 255, 255, 0.72);
+  --color-panel-border: rgba(0, 0, 0, 0.06);
+
   --color-muted: #f0f1ef;
-  --color-muted-foreground: #6b6f76;
-  --color-border: #e5e6e3;
-  --color-destructive: #c0392b;
+  --color-muted-foreground: #6f7478;
+  --color-border: #e9ebe9;
+  --color-destructive: #b0483a;
   --color-destructive-bg: #fbecea;
   --color-ring: #16171a;
 }
@@ -30,13 +39,18 @@
   --color-on-primary: var(--color-on-primary);
   --color-accent: var(--color-accent);
   --color-accent-soft: var(--color-accent-soft);
-  --color-on-accent: var(--color-on-accent);
+  --color-accent-border: var(--color-accent-border);
+  --color-accent-text: var(--color-accent-text);
   --color-success: var(--color-success);
   --color-success-soft: var(--color-success-soft);
   --color-background: var(--color-background);
   --color-foreground: var(--color-foreground);
+  --color-secondary: var(--color-secondary);
+  --color-tertiary: var(--color-tertiary);
   --color-card: var(--color-card);
   --color-card-foreground: var(--color-card-foreground);
+  --color-panel-bg: var(--color-panel-bg);
+  --color-panel-border: var(--color-panel-border);
   --color-muted: var(--color-muted);
   --color-muted-foreground: var(--color-muted-foreground);
   --color-border: var(--color-border);
@@ -47,13 +61,13 @@
 }
 
 body {
-  background: var(--color-background);
+  background-color: var(--color-background);
+  background-image: radial-gradient(ellipse 80% 60% at 50% -10%, rgba(0, 0, 0, 0.025), transparent);
   color: var(--color-foreground);
   font-family: var(--font-sans);
 }
 
-/* 原生 range 滑块的自定义样式：更大的可点按区域、清晰的手柄，
-   贴近 Apple Health / iOS 控件的观感。 */
+/* 原生 range 滑块：细轨道、小巧手柄，贴近 Apple Health 的精致感。 */
 input[type="range"] {
   -webkit-appearance: none;
   appearance: none;
@@ -61,42 +75,42 @@ input[type="range"] {
 }
 
 input[type="range"]::-webkit-slider-runnable-track {
-  height: 6px;
+  height: 3px;
   border-radius: 9999px;
-  background: var(--color-muted);
+  background: var(--color-border);
 }
 
 input[type="range"]::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
-  margin-top: -8px;
-  height: 20px;
-  width: 20px;
+  margin-top: -6px;
+  height: 15px;
+  width: 15px;
   border-radius: 9999px;
   background: var(--color-card);
-  border: 2px solid var(--color-foreground);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+  border: 1.5px solid var(--color-foreground);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12);
   cursor: pointer;
-  transition: transform 150ms ease;
+  transition: transform 200ms ease-out;
 }
 
 input[type="range"]:active::-webkit-slider-thumb {
-  transform: scale(1.08);
+  transform: scale(1.15);
 }
 
 input[type="range"]::-moz-range-track {
-  height: 6px;
+  height: 3px;
   border-radius: 9999px;
-  background: var(--color-muted);
+  background: var(--color-border);
 }
 
 input[type="range"]::-moz-range-thumb {
-  height: 20px;
-  width: 20px;
+  height: 15px;
+  width: 15px;
   border-radius: 9999px;
   background: var(--color-card);
-  border: 2px solid var(--color-foreground);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+  border: 1.5px solid var(--color-foreground);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12);
   cursor: pointer;
 }
 

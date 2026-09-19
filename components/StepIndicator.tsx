@@ -6,23 +6,35 @@ const STEPS = [
 
 export default function StepIndicator({ current }: { current: number }) {
   return (
-    <ol className="flex items-center gap-3" aria-label="进度">
+    <ol className="flex items-center gap-4" aria-label="进度">
       {STEPS.map((step, i) => (
-        <li key={step.num} className="flex items-center gap-3">
-          <span
-            className={`flex items-center gap-1.5 text-sm font-medium transition-colors duration-150 ${
-              i === current
-                ? "text-[var(--color-foreground)]"
-                : i < current
-                  ? "text-[var(--color-muted-foreground)]"
-                  : "text-[var(--color-muted-foreground)]/50"
-            }`}
-          >
-            <span className="text-[11px] tracking-wider">{step.num}</span>
-            {step.label}
-          </span>
+        <li key={step.num} className="flex items-center gap-4">
+          <div className="flex flex-col items-center gap-1">
+            <span
+              className={`text-[11px] tracking-wider transition-colors duration-200 ${
+                i === current
+                  ? "text-[var(--color-foreground)]"
+                  : i < current
+                    ? "text-[var(--color-success)]"
+                    : "text-[var(--color-tertiary)]"
+              }`}
+            >
+              {step.num}
+            </span>
+            <span
+              className={`text-[13px] font-medium transition-colors duration-200 ${
+                i === current
+                  ? "text-[var(--color-foreground)]"
+                  : i < current
+                    ? "text-[var(--color-success)]"
+                    : "text-[var(--color-tertiary)]"
+              }`}
+            >
+              {step.label}
+            </span>
+          </div>
           {i < STEPS.length - 1 && (
-            <span className="h-px w-8 bg-[var(--color-border)]" aria-hidden="true" />
+            <span className="mb-4 h-px w-10 bg-[var(--color-border)]" aria-hidden="true" />
           )}
         </li>
       ))}
