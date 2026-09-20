@@ -3,6 +3,10 @@ import { NO_INJURY_VALUE, INJURY_YES } from "@/lib/formOptions";
 import { startTrainingWorkflow } from "@/lib/dify";
 import { calculateWeights } from "@/lib/calculateWeights";
 
+// Vercel Hobby 计划里 Serverless 函数最长允许跑到 60 秒；这里显式声明，
+// 避免不同环境下的默认值（有的低至 10 秒）过早掐断这个较慢的请求。
+export const maxDuration = 60;
+
 export async function POST(req: NextRequest) {
   let body: Record<string, unknown>;
   try {

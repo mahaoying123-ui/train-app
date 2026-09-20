@@ -219,6 +219,9 @@ export async function submitHumanChoice(formToken: string, actionId: string, use
   });
   if (!res.ok) {
     const data = await res.json().catch(() => ({}) as Record<string, unknown>);
+    // 如果服务器函数被平台超时打断，用户点"重试"会用同一个 formToken 再次提交。
+    // Dify 对已经提交过的表单会报 412，这种情况不算失败，直接当作已提交继续走下去。
+    if ((data as { code?: string }).code === "human_input_form_submitted") return;
     throw new Error((data as { message?: string }).message || "提交选择失败");
   }
 }
@@ -231,7 +234,9 @@ interface WorkflowRunStatus {
 
 export async function pollWorkflowRun(
   workflowRunId: string,
-  timeoutMs = 90000,
+  // Vercel Hobby 的函数最长只能跑 60 秒，这里留出提交选择请求和网络开销的余量，
+  // 避免被平台在我们自己的超时逻辑生效前直接掐断连接。
+  timeoutMs = 48000,
 ): Promise<WorkflowRunStatus> {
   const start = Date.now();
   let lastSeen: WorkflowRunStatus | null = null;

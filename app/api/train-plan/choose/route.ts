@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { submitHumanChoice, pollWorkflowRun, cleanOutputs, hasMeaningfulOutput } from "@/lib/dify";
 
+// 同上：留给 Dify 生成详细计划 + 轮询确认结果的时间比较长，需要 Hobby 计划允许的上限。
+export const maxDuration = 60;
+
 export async function POST(req: NextRequest) {
   let body: Record<string, unknown>;
   try {
@@ -28,10 +31,11 @@ export async function POST(req: NextRequest) {
 
     const outputs = cleanOutputs(result.outputs || {});
     if (!hasMeaningfulOutput(outputs)) {
-      return NextResponse.json(
-        { error: "AI 没有生成有效内容，请重试一次" },
-        { status: 502 },
-      );
+      const message =
+        result.status === "running"
+          ? "AI 还在生成中，请稍等几秒后再点一次「使用方案」"
+          : "AI 没有生成有效内容，请重试一次";
+      return NextResponse.json({ error: message }, { status: 502 });
     }
 
     return NextResponse.json({ outputs });

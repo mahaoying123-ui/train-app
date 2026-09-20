@@ -3,17 +3,21 @@
 import { useEffect, useState } from "react";
 import { Check } from "lucide-react";
 
-const PHASES = ["分析身体状态", "评估训练负荷", "匹配训练方案", "生成今日计划"];
+const DEFAULT_PHASES = ["分析身体状态", "评估训练负荷", "匹配训练方案", "生成今日计划"];
 
-export default function AIProcessing() {
+interface AIProcessingProps {
+  phases?: string[];
+}
+
+export default function AIProcessing({ phases = DEFAULT_PHASES }: AIProcessingProps) {
   const [activeIndex, setActiveIndex] = useState(0);
 
   useEffect(() => {
     const id = setInterval(() => {
-      setActiveIndex((i) => Math.min(i + 1, PHASES.length - 1));
+      setActiveIndex((i) => Math.min(i + 1, phases.length - 1));
     }, 1400);
     return () => clearInterval(id);
-  }, []);
+  }, [phases.length]);
 
   return (
     <div className="flex flex-col items-center gap-7 py-12">
@@ -22,7 +26,7 @@ export default function AIProcessing() {
         aria-hidden="true"
       />
       <ul className="flex flex-col gap-3.5">
-        {PHASES.map((phase, i) => {
+        {phases.map((phase, i) => {
           const state = i < activeIndex ? "done" : i === activeIndex ? "active" : "pending";
           return (
             <li key={phase} className="flex items-center gap-2.5 text-sm">

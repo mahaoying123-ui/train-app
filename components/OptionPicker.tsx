@@ -1,4 +1,7 @@
 import { ArrowRight } from "lucide-react";
+import AIProcessing from "./AIProcessing";
+
+const CHOOSE_PHASES = ["确认你的选择", "生成具体动作", "整理今日计划"];
 
 interface Option {
   id: string;
@@ -27,6 +30,10 @@ function totalMinutes(text: string): number | null {
 }
 
 export default function OptionPicker({ options, onChoose, submitting }: OptionPickerProps) {
+  if (submitting) {
+    return <AIProcessing phases={CHOOSE_PHASES} />;
+  }
+
   return (
     <div className="flex flex-col gap-5">
       <p className="text-[13px] text-[var(--color-secondary)]">

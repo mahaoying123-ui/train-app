@@ -35,11 +35,17 @@ export function parsePlanText(text: string): ParsedPlan | null {
   const calories = matchField(text, "卡路里消耗");
   const intensity = matchField(text, "计划强度");
 
+  // LLM 偶尔会在一个阶段内部用"3. xxx"这种编号标记具体的动作组/轮次，
+  // 这跟"1. 热身阶段"这种真正的阶段标题长得一模一样。只有标题里包含
+  // 阶段类关键词时才当作真正的阶段分界，否则会把动作编号误判成新阶段。
+  const STAGE_KEYWORDS = /热身|主训|拉伸|收身|放松|冷却|恢复/;
   const stageRegex = /\n?\s*\d+[.、]\s*([^\n]+)\n/g;
   const stageStarts: { title: string; index: number; contentStart: number }[] = [];
   let m: RegExpExecArray | null;
   while ((m = stageRegex.exec(text))) {
-    stageStarts.push({ title: m[1].trim(), index: m.index, contentStart: m.index + m[0].length });
+    const title = m[1].trim();
+    if (!STAGE_KEYWORDS.test(title)) continue;
+    stageStarts.push({ title, index: m.index, contentStart: m.index + m[0].length });
   }
 
   if (stageStarts.length === 0) return null;
